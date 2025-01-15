@@ -10,6 +10,7 @@
             background-color: #f0f8ff;
             color: #333;
             text-align: center;
+            transition: background-color 0.5s, color 0.5s;
         }
 
         h1 {
@@ -43,21 +44,112 @@
             font-size: 0.9em;
             color: #666;
         }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #333;
+            color: #f0f8ff;
+        }
+
+        nav a.dark-mode {
+            background-color: #444;
+        }
+
+        nav a.dark-mode:hover {
+            background-color: #666;
+        }
+
+        .info-section {
+            margin: 40px auto;
+            max-width: 800px;
+            text-align: left;
+        }
+
+        .info-section h2 {
+            color: #2e8b57;
+        }
+
+        .toggle-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            border: none;
+            cursor: pointer;
+            background-color: #2e8b57;
+            color: #fff;
+            border-radius: 5px;
+        }
+
+        .toggle-button.dark-mode {
+            background-color: #444;
+            color: #fff;
+        }
+
+        .toggle-button:hover {
+            background-color: #4ca773;
+        }
     </style>
 </head>
 <body>
+
+    <button class="toggle-button" onclick="toggleMode()">🌙</button>
 
     <h1>Welcome to GreenPulse!</h1>
     <p>Your one-stop solution for smart farming.</p>
 
     <nav>
         <a href="farmer_assistant.html">Get Location & Soil Data</a>
-        <a href="efficient_cropping.html">Efficient Cropping Patterns</a> <!-- New Link for Cropping Patterns -->
+        <a href="efficient_cropping.html">Efficient Cropping Patterns</a>
     </nav>
+
+    <!-- Informative Sections about GreenPulse -->
+    <div class="info-section">
+        <h2>About GreenPulse</h2>
+        <p>GreenPulse is an intelligent assistant designed to empower farmers with real-time data and insights on their soil, weather conditions, and recommended farming practices. We aim to increase farm efficiency, optimize crop yields, and promote sustainable farming practices for a greener future.</p>
+    </div>
+
+    <div class="info-section">
+        <h2>Key Features</h2>
+        <ul>
+            <li><strong>Soil Analysis:</strong> Get soil data such as pH level, sand, clay, silt, and organic material density to make informed decisions.</li>
+            <li><strong>Efficient Cropping Patterns:</strong> Receive suggestions for optimal crop rotations based on your soil and region.</li>
+            <li><strong>Weather Forecast:</strong> Stay updated with accurate weather forecasts to manage irrigation and planting schedules.</li>
+            <li><strong>Fertilizer Recommendations:</strong> Get recommendations for the best fertilizers suited to your soil conditions.</li>
+        </ul>
+    </div>
+
+    <div class="info-section">
+        <h2>Our Mission</h2>
+        <p>At GreenPulse, our mission is to leverage technology to assist farmers in achieving sustainable agriculture. By providing accessible tools and data, we hope to reduce resource waste, improve crop yields, and promote environmental stewardship.</p>
+    </div>
 
     <footer>
         <p>&copy; 2025 GreenPulse. Empowering Farmers for a Greener Future.</p>
     </footer>
 
+    <script>
+        // Dark Mode Toggle Functionality
+        function toggleMode() {
+            const body = document.body;
+            const toggleButton = document.querySelector('.toggle-button');
+            const links = document.querySelectorAll('nav a');
+
+            body.classList.toggle('dark-mode');
+            toggleButton.classList.toggle('dark-mode');
+
+            links.forEach(link => {
+                link.classList.toggle('dark-mode');
+            });
+
+            // Change button icon based on mode
+            if (toggleButton.innerText === '🌙') {
+                toggleButton.innerText = '☀️';
+            } else {
+                toggleButton.innerText = '🌙';
+            }
+        }
+    </script>
 </body>
 </html>
