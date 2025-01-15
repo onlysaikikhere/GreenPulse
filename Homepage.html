@@ -3,79 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome to Farmer's Portal</title>
+    <title>GreenPulse: Farmer's Assistant</title>
     <style>
-        /* Global styles */
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: 'Arial', sans-serif;
+        body {
+            font-family: Arial, sans-serif;
             background-color: #f0f8ff;
-            height: 100%;
+            color: #333;
             text-align: center;
         }
 
-        /* Fullscreen container */
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        /* Header text */
         h1 {
+            color: #2e8b57;
             font-size: 3em;
-            color: #4CAF50;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
-        /* Introductory text */
-        p {
+        nav {
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        nav a {
             font-size: 1.2em;
-            color: #333;
-            margin-bottom: 30px;
-            max-width: 600px;
-            line-height: 1.5;
-        }
-
-        /* Call to action button */
-        a {
-            background-color: #FF9800;
-            color: white;
-            padding: 15px 30px;
-            font-size: 1.5em;
-            border: none;
-            border-radius: 5px;
+            color: #ffffff;
+            background-color: #2e8b57;
+            padding: 15px 25px;
             text-decoration: none;
-            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+            display: inline-block;
         }
 
-        a:hover {
-            background-color: #F57C00;
+        nav a:hover {
+            background-color: #4ca773;
         }
 
-        /* Footer */
         footer {
-            position: absolute;
-            bottom: 20px;
-            width: 100%;
-            font-size: 1em;
+            margin-top: 40px;
+            font-size: 0.9em;
             color: #666;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to Farmer's Portal</h1>
-        <p>Your go-to assistant for soil data, weather insights, and location tracking to improve your farming experience. Click the button below to get started and discover valuable insights tailored for your farm.</p>
-        <!-- Link to the Farmer's Assistant page -->
-        <a href="farmer_assistant.html">Go to Farmer's Assistant</a>
-    </div>
+
+    <h1>Welcome to GreenPulse!</h1>
+    <p>Your one-stop solution for smart farming.</p>
+
+    <nav>
+        <a href="farmer_assistant.html">Get Location & Soil Data</a>
+        <a href="efficient_cropping.html">Efficient Cropping Patterns</a> <!-- New Link for Cropping Patterns -->
+    </nav>
 
     <footer>
-        &copy; 2025 Farmer's Portal. Empowering farmers with technology.
+        <p>&copy; 2025 GreenPulse. Empowering Farmers for a Greener Future.</p>
     </footer>
+
 </body>
 </html>
