@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer's Assistant</title>
+    <style>
+        /* Global Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+        }
+
+        /* Centered container */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        /* Header */
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 30px;
+            font-size: 2em;
+            border-radius: 10px;
+        }
+
+        /* Button */
+        button {
+            background-color: #FF9800;
+            color: white;
+            font-size: 1.5em;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background-color: #F57C00;
+        }
+
+        /* Location and Soil Information */
+        .info {
+            font-size: 1.3em;
+            color: #333;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer */
+        #save {
+            margin-top: 30px;
+            font-size: 1.2em;
+            color: #673AB7;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        // Function to obtain location via HERE API
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Display location details
+                        document.getElementById("location").innerText =
+                            `Latitude: ${latitude}, Longitude: ${longitude}`;
+
+                        // Fetch soil data
+                        const soilResponse = await fetch("http://127.0.0.1:5000/get-soil-data", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ latitude, longitude })
+                        });
+
+                        const soilData = await soilResponse.json();
+
+                        // Display soil details
+                        document.getElementById("soil").innerText = `
+                            Soil Data:
+                            pH: ${soilData.phh2o || "N/A"}
+                            Sand: ${soilData.sand || "N/A"}%
+                            Clay: ${soilData.clay || "N/A"}%
+                            Silt: ${soilData.silt || "N/A"}%
+                            Organic Material Density: ${soilData.ocd || "N/A"}
+                        `;
+
+                        // Save location and soil data
+                        const saveResponse = await fetch("http://127.0.0.1:5000/save-location", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ latitude, longitude })
+                        });
+
+                        const saveData = await saveResponse.json();
+
+                        // Display save confirmation
+                        document.getElementById("save").innerText = saveData.message || "Failed to save location.";
+                    },
+                    (error) => {
+                        document.getElementById("location").innerText = `Error obtaining location: ${error.message}`;
+                    }
+                );
+            } else {
+                document.getElementById("location").innerText = "Geolocation is not supported by this browser.";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Farmer's Assistant</h1>
+
+        <button onclick="getLocation()">Get Location & Fetch Soil Data</button>
+
+        <div id="location" class="info">
+            <!-- Location details will appear here -->
+        </div>
+
+        <div id="soil" class="info">
+            <!-- Soil details will appear here -->
+        </div>
+
+        <div id="save" class="info">
+            <!-- Save confirmation message will appear here -->
+        </div>
+    </div>
+</body>
+</html>

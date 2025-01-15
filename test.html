@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer's Assistant</title>
+    <script>
+        // Function to obtain location via HERE API
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Display location details
+                        document.getElementById("location").innerText =
+                            `Latitude: ${latitude}, Longitude: ${longitude}`;
+
+                        // Fetch soil data
+                        const soilResponse = await fetch("http://127.0.0.1:5000/get-soil-data", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ latitude, longitude })
+                        });
+
+                        const soilData = await soilResponse.json();
+
+                        // Display soil details
+                        document.getElementById("soil").innerText = `
+                            Soil Data:
+                            pH: ${soilData.phh2o || "N/A"}
+                            Sand: ${soilData.sand || "N/A"}%
+                            Clay: ${soilData.clay || "N/A"}%
+                            Silt: ${soilData.silt || "N/A"}%
+                            Organic Material Density: ${soilData.ocd || "N/A"}
+                        `;
+
+                        // Save location and soil data
+                        const saveResponse = await fetch("http://127.0.0.1:5000/save-location", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({ latitude, longitude })
+                        });
+
+                        const saveData = await saveResponse.json();
+
+                        // Display save confirmation
+                        document.getElementById("save").innerText = saveData.message || "Failed to save location.";
+                    },
+                    (error) => {
+                        document.getElementById("location").innerText = `Error obtaining location: ${error.message}`;
+                    }
+                );
+            } else {
+                document.getElementById("location").innerText = "Geolocation is not supported by this browser.";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Farmer's Assistant</h1>
+
+    <div>
+        <button onclick="getLocation()">Get Location & Fetch Soil Data</button>
+    </div>
+
+    <div id="location" style="margin-top: 20px; font-size: 1.2em; color: green;">
+        <!-- Location details will appear here -->
+    </div>
+
+    <div id="soil" style="margin-top: 20px; font-size: 1.2em; color: blue;">
+        <!-- Soil details will appear here -->
+    </div>
+
+    <div id="save" style="margin-top: 20px; font-size: 1.2em; color: purple;">
+        <!-- Save confirmation message will appear here -->
+    </div>
+</body>
+</html>
