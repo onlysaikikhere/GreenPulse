@@ -1,3 +1,5 @@
+#vsr_route_new
+
 from flask import Blueprint, jsonify, request
 from app.services.here_maps_service import get_coordinates
 from app.models import Location
@@ -40,7 +42,7 @@ def save_location():
     latitude = data.get("latitude")
     longitude = data.get("longitude")
 
-    if not latitude or not longitude:
+    if latitude is None or longitude is None:
         return jsonify({"error": "Latitude and longitude are required"}), 400
 
     # Fetch soil data using the provided latitude and longitude
@@ -60,8 +62,18 @@ def save_location():
             })
             response.raise_for_status()  # Ensure the request was successful
             soil_response = response.json()
-            value = soil_response.get("properties", {}).get("layers", [])[0].get("depths", [])[0].get("values", {}).get("mean")
-            soil_data[prop] = value if value is not None else "N/A"
+
+            # Safely extract data
+            layers = soil_response.get("properties", {}).get("layers", [])
+            if layers:
+                depths_data = layers[0].get("depths", [])
+                if depths_data:
+                    mean_value = depths_data[0].get("values", {}).get("mean")
+                    soil_data[prop] = mean_value if mean_value is not None else "N/A"
+                else:
+                    soil_data[prop] = "N/A"
+            else:
+                soil_data[prop] = "N/A"
         except Exception as e:
             soil_data[prop] = "N/A"  # Default value in case of errors
 
@@ -70,21 +82,22 @@ def save_location():
         soil_data["phh2o"] = round(soil_data["phh2o"] / 10, 2)
 
     # Save the location and soil data to the database
-    new_location = Location(
-        latitude=latitude,
-        longitude=longitude,
-        ph=soil_data.get("phh2o"),
-        sand=soil_data.get("sand"),
-        clay=soil_data.get("clay"),
-        silt=soil_data.get("silt"),
-        ocd=soil_data.get("ocd")
-    )
-    db.session.add(new_location)
-    db.session.commit()
+    try:
+        new_location = Location(
+            latitude=latitude,
+            longitude=longitude,
+            ph=soil_data.get("phh2o") if soil_data.get("phh2o") != "N/A" else None,
+            sand=soil_data.get("sand") if soil_data.get("sand") != "N/A" else None,
+            clay=soil_data.get("clay") if soil_data.get("clay") != "N/A" else None,
+            silt=soil_data.get("silt") if soil_data.get("silt") != "N/A" else None,
+            ocd=soil_data.get("ocd") if soil_data.get("ocd") != "N/A" else None
+        )
+        db.session.add(new_location)
+        db.session.commit()
+    except Exception as e:
+        return jsonify({"error": f"Failed to save location: {str(e)}"}), 500
 
     return jsonify({"message": "Location and soil data saved successfully", "data": soil_data}), 201
-
-
 @main.route("/get-soil-data", methods=["POST"])
 def get_soil_data():
     data = request.get_json()

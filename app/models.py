@@ -1,3 +1,5 @@
+#vsr_model_new
+
 from app import db
 from datetime import datetime
 
@@ -29,11 +31,11 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    ph = db.Column(db.Float)  # Ensure this field exists
-    sand = db.Column(db.Float)
-    clay = db.Column(db.Float)
-    silt = db.Column(db.Float)
-    ocd = db.Column(db.Float)
+    ph = db.Column(db.Float, nullable=True)  # Ensure nullable=True
+    sand = db.Column(db.Float, nullable=True)
+    clay = db.Column(db.Float, nullable=True)
+    silt = db.Column(db.Float, nullable=True)
+    ocd = db.Column(db.Float, nullable=True)
 
     def __repr__(self):
         return f"<Location {self.location_name} ({self.latitude}, {self.longitude})>"

@@ -1,0 +1,46 @@
+{
+    "2025-01": {
+        "avg_temp": 16.3,
+        "total_rain": 0.7
+    },
+    "2025-02": {
+        "avg_temp": 19.45,
+        "total_rain": 0.4
+    },
+    "2025-03": {
+        "avg_temp": 25.5,
+        "total_rain": 0.6
+    },
+    "2025-04": {
+        "avg_temp": 31.3,
+        "total_rain": 0.3
+    },
+    "2025-05": {
+        "avg_temp": 35.55,
+        "total_rain": 0.6
+    },
+    "2025-06": {
+        "avg_temp": 36.05,
+        "total_rain": 1.2
+    },
+    "2025-07": {
+        "avg_temp": 32.1,
+        "total_rain": 20.2
+    },
+    "2025-08": {
+        "avg_temp": 30.45,
+        "total_rain": 10.3
+    },
+    "2025-09": {
+        "avg_temp": 29.65,
+        "total_rain": 8.8
+    },
+    "2025-10": {
+        "avg_temp": 28.55,
+        "total_rain": 4.55
+    },
+    "2025-11": {
+        "avg_temp": 23.7,
+        "total_rain": 0.0
+    }
+}
