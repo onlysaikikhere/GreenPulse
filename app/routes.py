@@ -1,7 +1,9 @@
+#vsr_route_new
+
 from flask import Blueprint, jsonify, request
 from app.services.here_maps_service import get_coordinates
 from app.models import Location
-from app.models import FarmData, db
+from app.models import  db
 import requests
 
 main = Blueprint('main', __name__)
@@ -15,7 +17,7 @@ def get_location():
     data = request.get_json()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
-
+    
     if latitude and longitude:
         # Reverse-geocode using HERE API
         api_url = f"https://revgeocode.search.hereapi.com/v1/revgeocode?at={latitude},{longitude}&apiKey=aaZehEDfRXG_CJ9YJF4slAfDqFSf9BJSFUbQ3wVoSI8"
@@ -28,8 +30,16 @@ def get_location():
         if "items" not in location_data or not location_data["items"]:
             return jsonify({"error": "Location not found"}), 404
 
-        # Return address details
-        return jsonify(location_data["items"][0]["address"])
+        # Extract state name
+        address = location_data["items"][0]["address"]
+        state = address.get("state", "Unknown State")
+
+        # Return latitude, longitude, and state name
+        return jsonify({
+            "latitude": latitude,
+            "longitude": longitude,
+            "state": state
+        })
 
     return jsonify({"error": "Latitude and longitude are required"}), 400
 
@@ -39,51 +49,31 @@ def save_location():
     data = request.get_json()
     latitude = data.get("latitude")
     longitude = data.get("longitude")
+    state=data.get("state")
+    soil_data = data.get("soil_data", {})
 
     if not latitude or not longitude:
         return jsonify({"error": "Latitude and longitude are required"}), 400
 
-    # Fetch soil data using the provided latitude and longitude
-    soil_url = "https://rest.isric.org/soilgrids/v2.0/properties/query"
-    properties = ["phh2o", "sand", "clay", "silt", "ocd"]
-    depths = "0-5cm"  # Query for the topsoil layer
-    soil_data = {}
+    try:
+        # Extract soil data from the payload, with default fallback values
+        new_location = Location(
+            latitude=latitude,
+            longitude=longitude,
+            state=state, 
+            ph=soil_data.get("phh2o"),
+            sand=soil_data.get("sand"),
+            clay=soil_data.get("clay"),
+            silt=soil_data.get("silt"),
+            ocd=soil_data.get("ocd")
+        )
+        db.session.add(new_location)
+        db.session.commit()
 
-    for prop in properties:
-        try:
-            response = requests.get(soil_url, params={
-                "lon": longitude,
-                "lat": latitude,
-                "property": prop,
-                "depth": depths,
-                "value": "mean"
-            })
-            response.raise_for_status()  # Ensure the request was successful
-            soil_response = response.json()
-            value = soil_response.get("properties", {}).get("layers", [])[0].get("depths", [])[0].get("values", {}).get("mean")
-            soil_data[prop] = value if value is not None else "N/A"
-        except Exception as e:
-            soil_data[prop] = "N/A"  # Default value in case of errors
-
-    # Adjust the pH value by dividing by 10
-    if soil_data.get("phh2o") != "N/A":
-        soil_data["phh2o"] = round(soil_data["phh2o"] / 10, 2)
-
-    # Save the location and soil data to the database
-    new_location = Location(
-        latitude=latitude,
-        longitude=longitude,
-        ph=soil_data.get("phh2o"),
-        sand=soil_data.get("sand"),
-        clay=soil_data.get("clay"),
-        silt=soil_data.get("silt"),
-        ocd=soil_data.get("ocd")
-    )
-    db.session.add(new_location)
-    db.session.commit()
-
-    return jsonify({"message": "Location and soil data saved successfully", "data": soil_data}), 201
-
+        return jsonify({"message": "Location and soil data saved successfully"}), 201
+    except Exception as e:
+        return jsonify({"error": f"Failed to save location: {str(e)}"}), 500
+    
 
 @main.route("/get-soil-data", methods=["POST"])
 def get_soil_data():
