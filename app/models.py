@@ -31,6 +31,7 @@ class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
+    state = db.Column(db.String(50), nullable=False )
     ph = db.Column(db.Float, nullable=True)  # Ensure nullable=True
     sand = db.Column(db.Float, nullable=True)
     clay = db.Column(db.Float, nullable=True)

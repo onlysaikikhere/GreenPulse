@@ -67,61 +67,81 @@
         }
     </style>
     <script>
-        // Function to obtain location via HERE API
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    async (position) => {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
+                // Function to obtain location via HERE API
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
 
-                        // Display location details
-                        document.getElementById("location").innerText =
-                            `Latitude: ${latitude}, Longitude: ${longitude}`;
+                // Display location details
+                document.getElementById("location").innerText =
+                    `Latitude: ${latitude}, Longitude: ${longitude}`;
 
-                        // Fetch soil data
-                        const soilResponse = await fetch("http://127.0.0.1:5000/get-soil-data", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ latitude, longitude })
-                        });
+                try {
+                    // Fetch soil data
+                    const soilResponse = await fetch("http://127.0.0.1:5000/get-soil-data", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ latitude, longitude })
+                    });
 
-                        const soilData = await soilResponse.json();
-
-                        // Display soil details
-                        document.getElementById("soil").innerText = `
-                            Soil Data:
-                            pH: ${soilData.phh2o || "N/A"}
-                            Sand: ${soilData.sand || "N/A"}%
-                            Clay: ${soilData.clay || "N/A"}%
-                            Silt: ${soilData.silt || "N/A"}%
-                            Organic Material Density: ${soilData.ocd || "N/A"}
-                        `;
-
-                        // Save location and soil data
-                        const saveResponse = await fetch("http://127.0.0.1:5000/save-location", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({ latitude, longitude })
-                        });
-
-                        const saveData = await saveResponse.json();
-
-                        // Display save confirmation
-                        document.getElementById("save").innerText = saveData.message || "Failed to save location.";
-                    },
-                    (error) => {
-                        document.getElementById("location").innerText = `Error obtaining location: ${error.message}`;
+                    if (!soilResponse.ok) {
+                        throw new Error("Failed to fetch soil data.");
                     }
-                );
-            } else {
-                document.getElementById("location").innerText = "Geolocation is not supported by this browser.";
+
+                    const soilData = await soilResponse.json();
+
+                    // Display soil details
+                    document.getElementById("soil").innerText = `
+                        Soil Data:
+                        pH: ${soilData.phh2o || "N/A"}
+                        Sand: ${soilData.sand || "N/A"}%
+                        Clay: ${soilData.clay || "N/A"}%
+                        Silt: ${soilData.silt || "N/A"}%
+                        Organic Material Density: ${soilData.ocd || "N/A"}
+                    `;
+
+                    // Save location and soil data
+                    const saveResponse = await fetch("http://127.0.0.1:5000/save-location", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ 
+                            latitude, 
+                            longitude, 
+                            soil_data: soilData // Pass soil data here
+                        })
+                    });
+
+                    if (!saveResponse.ok) {
+                        throw new Error("Failed to save location.");
+                    }
+
+                    const saveData = await saveResponse.json();
+
+                    // Display save confirmation
+                    document.getElementById("save").innerText = saveData.message || "Failed to save location.";
+                } catch (error) {
+                    // Handle errors and display appropriate messages
+                    console.error(error);
+                    document.getElementById("soil").innerText = "Error fetching soil data.";
+                    document.getElementById("save").innerText = "Error saving location.";
+                }
+            },
+            (error) => {
+                document.getElementById("location").innerText = `Error obtaining location: ${error.message}`;
             }
-        }
+        );
+    } else {
+        document.getElementById("location").innerText = "Geolocation is not supported by this browser.";
+    }
+}
+
     </script>
 </head>
 <body>
