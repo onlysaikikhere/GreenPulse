@@ -4,7 +4,7 @@
         "total_rain": 0.7
     },
     "2025-02": {
-        "avg_temp": 19.45,
+        "avg_temp": 19.5,
         "total_rain": 0.4
     },
     "2025-03": {
@@ -16,11 +16,11 @@
         "total_rain": 0.3
     },
     "2025-05": {
-        "avg_temp": 35.55,
+        "avg_temp": 35.6,
         "total_rain": 0.6
     },
     "2025-06": {
-        "avg_temp": 36.05,
+        "avg_temp": 36.0,
         "total_rain": 1.2
     },
     "2025-07": {
@@ -28,16 +28,16 @@
         "total_rain": 20.2
     },
     "2025-08": {
-        "avg_temp": 30.45,
+        "avg_temp": 30.5,
         "total_rain": 10.3
     },
     "2025-09": {
-        "avg_temp": 29.65,
+        "avg_temp": 29.7,
         "total_rain": 8.8
     },
     "2025-10": {
-        "avg_temp": 28.55,
-        "total_rain": 4.55
+        "avg_temp": 28.6,
+        "total_rain": 4.6
     },
     "2025-11": {
         "avg_temp": 23.7,

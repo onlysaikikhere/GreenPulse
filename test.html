@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farmer's Assistant</title>
+    <link rel="stylesheet" href="https://unpkg.com/ol/ol.css">
+    <script src="https://unpkg.com/ol/dist/ol.js"></script>
+    <style>
+        /* Map and Animation Styles */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Arial', sans-serif;
+            background-color: #000000;
+            overflow: hidden;
+        }
+
+        #map {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        #get-local {
+            background-color: #730f0f;
+            color: white;
+            font-size: 1.5em;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: opacity 0.5s ease-out;
+        }
+
+        #get-local:hover {
+            background-color: #F57C00;
+        }
+
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #m1n {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #1d351f;
+            color: rgb(255, 255, 255);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 2px;
+            z-index: 3;
+        }
+
+        .nav-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 18px;
+            padding: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .nav-link:hover {
+            color: #FF9800;
+        }
+
+        .animated-div {
+            position: absolute;
+            top: 50%;
+            width: 200px;
+            height: 50px;
+            background-color: #FF9800;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            transition: transform 1s ease-out, opacity 0.5s ease-out 0.5s;
+            z-index: 4;
+        }
+
+        #left-div {
+            top: 5px;
+            left: 36%;
+            transition: transform 1s ease-out, opacity 0.5s ease-out 0.5s;
+        }
+
+        #right-div {
+            top: 5px;
+            right: 36%;
+            transition: transform 1s ease-out, opacity 0.5s ease-out 0.5s;
+        }
+
+        .move-left {
+            transform: translateX(-12.5vw);
+            opacity: 0;
+        }
+
+        .move-right {
+            transform: translateX(12.5vw);
+            opacity: 0;
+        }
+
+        .icon-div {
+            background-color: #FF9800;
+            color: white;
+            position: fixed;
+            top: 120px;
+            right: 46%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 120px;
+            width: 120px;
+            border-radius: 5px;
+            z-index: 4;
+            transform: translateY(0);
+            transition: transform 2s ease-in-out, width 2s ease-in-out, height 2s ease-in-out;
+        }
+
+        .icon-div.move-up {
+            transform: translateY(-140px);
+            width: 80px;
+            height: 80px;
+        }
+
+        .map-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.79);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+            z-index: 2;
+        }
+
+        .map-overlay.active {
+            opacity: 1;
+        }
+
+        /* Dashboard Styles */
+        .dashboard-container {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            z-index: 4;
+        }
+
+        .dashboard-container.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #global-input {
+            position: fixed;
+            top: 80px;
+            left: 30px;
+            width: 320px;
+            height: 80px;
+            padding: 15px;
+            font-size: 17px;
+            background-color: #2f5631;
+            border: 1px solid #2f5631;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        #f1st-stat-scroll-container {
+            position: fixed;
+            left: 30px;
+            bottom: 80px;
+            display: flex;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 340px;
+            padding: 8px;
+            background-color: #2f5631;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 0px;
+            z-index: 4;
+        }
+
+        #f1st-grid {
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            grid-template-rows: repeat(4, 1fr);
+            column-gap: 12px;
+            row-gap: 5px;
+            z-index: 4;
+        }
+
+        .f1st-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 12px;
+            cursor: pointer;
+            min-width: 100px;
+            z-index: 4;
+        }
+
+        .f1st-widget img {
+            width: 50px;
+            height: 50px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            z-index: 4;
+        }
+
+        .f1st-active {
+            background-color: #b2dfdb;
+        }
+
+        #s2cond-widget-container {
+            display: grid;
+            position: fixed;
+            bottom: 60px;
+            right: 30px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 320px;
+            margin-bottom: 20px;
+            z-index: 4;
+        }
+
+        .s2cond-widget {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #2f5631;
+            border-radius: 10px;
+            text-align: center;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            z-index: 4;
+        }
+
+        .s2cond-inactive {
+            background-color: #e0e0e0;
+        }
+
+        #th3rd-text-bubble {
+            width: 300px;
+            height: auto;
+            position: fixed;
+            top: 80px;
+            right: 30px;
+            padding: 15px;
+            background-color: #2f5631;
+            border: 1px solid #2f5631;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            z-index: 4;
+            word-wrap: break-word;
+        }
+
+        #f4rth-active-plants {
+            width: 320px;
+            height: 80px;
+            padding: 15px;
+            position: fixed;
+            top: 80px;
+            right: 50%;
+            background-color: #07661f;
+            border: 1px solid #2f5631;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 20px;
+            z-index: 4;
+        }
+
+        #fi5th-total-price {
+            width: 300px;
+            height: 80px;
+            padding: 15px;
+            position: fixed;
+            bottom: 70px;
+            right: 50%;
+            background-color: #3b6d3e;
+            border: 1px solid #09120a;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-bottom: 20px;
+            z-index: 4;
+        }
+
+        #user-info-bubble {
+            width: 300px;
+            height: auto;
+            position: fixed;
+            top: 220px;
+            /* Positioned below th3rd-text-bubble */
+            right: 30px;
+            padding: 15px;
+            background-color: #2f5631;
+            border: 1px solid #2f5631;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: rgb(0, 0, 0);
+            z-index: 4;
+            /* Added to ensure text is visible on dark background */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Map and Animation Elements -->
+    <div id="map"></div>
+    <div id="map-overlay" class="map-overlay"></div>
+    <div class="container">
+        <button id="get-local">Get Location</button>
+    </div>
+    <div id="m1n" class="nav-bar">
+        <a href="#link1" class="nav-link">Link 1</a>
+        <a href="#link2" class="nav-link">Link 2</a>
+    </div>
+    <div id="left-div" class="animated-div">Left Div</div>
+    <div id="right-div" class="animated-div">Right Div</div>
+    <div id="icon-div" class="icon-div">Icon Div</div>
+
+    <!-- Dashboard Elements -->
+    <div class="dashboard-container">
+        <div id="global-input">
+            <label for="stateSelect">Select State:</label>
+            <select id="stateSelect"></select>
+        </div>
+        <div id="f1st-stat-scroll-container">
+            <div id="f1st-grid"></div>
+        </div>
+        <!-- New user info bubble -->
+        <div id="user-info-bubble"></div>
+        <div id="s2cond-widget-container"></div>
+        <div id="th3rd-text-bubble"></div>
+        <div id="f4rth-active-plants" style="display: none;"></div>
+        <div id="fi5th-total-price" style="display: none;"></div>
+    </div>
+
+    <script>
+        let map;
+        window.isLocationSet = false;
+        let plantData = null;
+        let soilData = null;
+        let activePlants = [];
+        const maxActivePlants = 4;
+
+        function initMap() {
+            const soilGridsSource = new ol.source.TileWMS({
+                url: 'https://maps.isric.org/mapserv?map=/map/ocs.map',
+                params: {
+                    'LAYERS': 'ocs_0-30cm_mean',
+                    'VERSION': '1.3.0',
+                    'SERVICE': 'WMS',
+                    'REQUEST': 'GetMap',
+                    'FORMAT': 'image/png',
+                    'TRANSPARENT': true
+                },
+                serverType: 'mapserver'
+            });
+
+            const soilGridsLayer = new ol.layer.Tile({
+                source: soilGridsSource
+            });
+
+            map = new ol.Map({
+                target: 'map',
+                layers: [soilGridsLayer],
+                view: new ol.View({
+                    center: ol.proj.fromLonLat([0, 0]),
+                    zoom: 2
+                }),
+                controls: [],
+                interactions: []
+            });
+        }
+
+        function showDashboard() {
+            const dashboard = document.querySelector('.dashboard-container');
+            dashboard.classList.add('visible');
+            initializeDashboard();
+        }
+
+        async function getLocation() {
+            const button = document.getElementById('get-local');
+            button.classList.add('fade-out');
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        const view = map.getView();
+                        view.animate({
+                            center: ol.proj.fromLonLat([longitude, latitude]),
+                            zoom: 6,
+                            duration: 4500
+                        });
+
+                        setTimeout(() => {
+                            document.getElementById('map-overlay').classList.add('active');
+                            setTimeout(showDashboard, 2000);
+                        }, 2000);
+
+                        try {
+                            const locationResponse = await fetch("http://127.0.0.1:5000/get-location", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({ latitude, longitude })
+                            });
+
+                            if (!locationResponse.ok) {
+                                throw new Error("Failed to get location details from server");
+                            }
+
+                            window.isLocationSet = true;
+                        } catch (error) {
+                            console.error("Error:", error);
+                        }
+
+                        setTimeout(() => {
+                            button.remove();
+                        }, 500);
+                    },
+                    (error) => {
+                        console.error("Error getting location:", error);
+                        button.remove();
+                        setTimeout(showDashboard, 4500);
+                    }
+                );
+            } else {
+                console.error("Geolocation not supported");
+                button.remove();
+                setTimeout(showDashboard, 4500);
+            }
+        }
+
+        // Dashboard Initialization Functions
+        function initializePlantWidget(data) {
+            plantData = data;
+            const gridContainer = document.getElementById('f1st-grid');
+
+            function updatePlantGrid(state) {
+                gridContainer.innerHTML = '';
+                const plants = plantData[state];
+                Object.keys(plants).forEach(plantName => {
+                    const widget = document.createElement('div');
+                    widget.classList.add('f1st-widget');
+                    const img = document.createElement('img');
+                    img.src = `/images/${plantName}.jpg`;
+                    img.alt = plantName;
+                    img.onerror = function () {
+                        this.onerror = null;
+                        this.src = "/images/Crossmark.png";
+                    };
+
+                    widget.innerHTML = `
+                        <strong>${plantName}</strong><br>
+                        Price: ₹${Math.floor(plants[plantName])}
+                    `;
+                    widget.insertBefore(img, widget.firstChild);
+
+                    widget.addEventListener('click', () => {
+                        if (widget.classList.contains('f1st-active')) {
+                            widget.classList.remove('f1st-active');
+                            activePlants = activePlants.filter(plant => plant.name !== plantName);
+                        } else {
+                            if (activePlants.length < maxActivePlants) {
+                                widget.classList.add('f1st-active');
+                                activePlants.push({ name: plantName, price: Math.floor(plants[plantName]) });
+                            } else {
+                                alert('You can only select up to 4 plants.');
+                            }
+                        }
+                        updateActivePlantsDisplay();
+                        updateTotalPriceDisplay();
+                    });
+
+                    gridContainer.appendChild(widget);
+                });
+
+                const widgetWidth = 120;
+                const numItems = Object.keys(plants).length;
+                const numColumns = Math.ceil(numItems / 2);
+                const totalWidth = numColumns * widgetWidth;
+                gridContainer.style.width = `${totalWidth}px`;
+            }
+
+            window.updatePlantGrid = updatePlantGrid;
+        }
+
+        function initializeWeatherWidget() {
+            fetch('Monthly_weather.json')
+                .then(response => response.json())
+                .then(jsonData => {
+                    const widgetContainer = document.getElementById('s2cond-widget-container');
+                    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+                    Object.keys(jsonData).forEach((key, index) => {
+                        const [year, month] = key.split('-');
+                        const monthIndex = parseInt(month, 10) - 1;
+
+                        const widget = document.createElement('div');
+                        widget.classList.add('s2cond-widget', 's2cond-inactive');
+                        widget.setAttribute('id', 's2cond-' + (index + 1));
+                        widget.innerHTML = `
+                            <strong>${monthNames[monthIndex]}</strong>
+                            <span class="s2cond-spacing"> 🌡️${jsonData[key].avg_temp}°C<br>
+                            ☔${jsonData[key].total_rain}mm</span>
+                        `;
+                        widgetContainer.appendChild(widget);
+                    });
+                })
+                .catch(error => console.error('Error loading weather data:', error));
+        }
+
+        const messages = {
+            minor_sand: "Mix a small portion of sand into the soil evenly",
+            major_sand: "Incorporate large amounts of sand into the soil evenly",
+            minor_silt: "Mix a small portion of sand into the silt evenly",
+            major_silt: "Incorporate large amounts of sand into the silt evenly",
+            minor_clay: "Mix a small portion of sand into the clay evenly",
+            major_clay: "Incorporate large amounts of sand into the clay evenly",
+            minor_ph_increase: "Use wood ash sparingly, incorporate crushed eggshells into the soil",
+            major_ph_increase: "Add poultry manure, wood ash in moderate quantities",
+            minor_ph_decrease: "Mix peat moss or pine needles into soil while tilling or before planting.",
+            major_ph_decrease: "Add large quantities of organic matter,\nIrrigate with water acidified using citric acid."
+        };
+
+        function generateSuggestions(soilData) {
+            let suggestions = "";
+            const { sand, silt, clay, phh2o } = soilData;
+            const total = sand + silt + clay;
+            const sandPercentage = (sand / total) * 100;
+            const siltPercentage = (silt / total) * 100;
+            const clayPercentage = (clay / total) * 100;
+
+            if (sandPercentage < 35) suggestions += `${messages.minor_sand}\n`;
+            else if (sandPercentage > 45) suggestions += `${messages.major_sand}\n`;
+
+            if (siltPercentage < 35) suggestions += `${messages.minor_silt}\n`;
+            else if (siltPercentage > 45) suggestions += `${messages.major_silt}\n`;
+
+            if (clayPercentage < 15) suggestions += `${messages.minor_clay}\n`;
+            else if (clayPercentage > 25) suggestions += `${messages.major_clay}\n`;
+
+            const actualPh = phh2o / 10;
+            if (actualPh < 5) {
+                suggestions += actualPh < 4 ? `${messages.major_ph_increase}\n` : `${messages.minor_ph_increase}\n`;
+            } else if (actualPh > 6) {
+                suggestions += actualPh > 7 ? `${messages.major_ph_decrease}\n` : `${messages.minor_ph_decrease}\n`;
+            }
+
+            return suggestions.trim();
+        }
+
+        function initializeSoilWidget(data) {
+            soilData = data;
+            function updateSoilSuggestions(state) {
+                const suggestionBubble = document.getElementById('th3rd-text-bubble');
+                const stateData = soilData[state][Object.keys(soilData[state])[0]];
+                const suggestions = generateSuggestions(stateData);
+                suggestionBubble.textContent = suggestions;
+            }
+            window.updateSoilSuggestions = updateSoilSuggestions;
+        }
+
+        function updateActivePlantsDisplay() {
+            const activePlantsContainer = document.getElementById('f4rth-active-plants');
+            if (activePlants.length > 0) {
+                activePlantsContainer.style.display = 'block';
+                activePlantsContainer.innerHTML = '';
+                activePlants.forEach(plant => {
+                    const plantDetail = document.createElement('div');
+                    plantDetail.textContent = `Plant: ${plant.name}, Price: ₹${plant.price}`;
+                    activePlantsContainer.appendChild(plantDetail);
+                });
+            } else {
+                activePlantsContainer.style.display = 'none';
+            }
+        }
+
+        function updateTotalPriceDisplay() {
+            const totalPriceContainer = document.getElementById('fi5th-total-price');
+            if (activePlants.length > 0) {
+                totalPriceContainer.style.display = 'block';
+                const totalPrice = activePlants.reduce((sum, plant) => sum + plant.price, 0);
+                totalPriceContainer.textContent = `Floor price for current plan = ₹${totalPrice}`;
+            } else {
+                totalPriceContainer.style.display = 'none';
+            }
+        }
+
+        function updateUserInfoBubble(recentData) {
+            const userInfoBubble = document.getElementById('user-info-bubble');
+            const currentUser = "BoomBoy79";
+            const currentDateTime = "2025-01-19 03:36:14";
+
+            let displayText = `Current User: ${currentUser}\n`;
+            displayText += `Timestamp: ${currentDateTime}\n\n`;
+            displayText += `Recent Activity:\n`;
+
+            // Get the first state's data as an example
+            const firstState = Object.keys(recentData)[0];
+            const stateData = recentData[firstState];
+            const firstLocation = Object.keys(stateData)[0];
+            const locationData = stateData[firstLocation];
+
+            displayText += `Last Location: ${firstState} - ${firstLocation}\n`;
+            displayText += `Soil Data:\n`;
+            displayText += `pH: ${(locationData.phh2o / 10).toFixed(2)}\n`;
+            displayText += `Sand: ${locationData.sand.toFixed(2)}%\n`;
+            displayText += `Silt: ${locationData.silt.toFixed(2)}%\n`;
+            displayText += `Clay: ${locationData.clay.toFixed(2)}%\n`;
+
+            userInfoBubble.textContent = displayText;
+        }
+
+        function initializeDashboard() {
+            Promise.all([
+                fetch('cleaned_output.json').then(response => response.json()),
+                fetch('recents.json').then(response => response.json())
+            ]).then(([plantJson, soilJson]) => {
+                initializePlantWidget(plantJson);
+                initializeSoilWidget(soilJson);
+                initializeWeatherWidget();
+                updateUserInfoBubble(soilJson);  // Add this line
+
+                const states = Object.keys(soilJson);
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state;
+                    stateSelect.appendChild(option);
+                });
+
+                if (stateSelect.options.length > 0) {
+                    stateSelect.selectedIndex = 0;
+                    const initialState = stateSelect.value;
+                    window.updatePlantGrid(initialState);
+                    window.updateSoilSuggestions(initialState);
+                }
+
+                stateSelect.addEventListener('change', (event) => {
+                    const selectedState = event.target.value;
+                    window.updatePlantGrid(selectedState);
+                    window.updateSoilSuggestions(selectedState);
+                });
+            }).catch(error => console.error('Error initializing widgets:', error));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            document.getElementById('get-local').addEventListener('click', getLocation);
+            document.getElementById('get-local').addEventListener('click', () => {
+                document.getElementById('left-div').classList.add('move-left');
+                document.getElementById('right-div').classList.add('move-right');
+                document.getElementById('icon-div').classList.add('move-up');
+            });
+        });
+    </script>
+</body>
+
+</html>
